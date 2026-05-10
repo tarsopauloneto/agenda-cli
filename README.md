@@ -20,7 +20,7 @@ Este projeto foi desenvolvido com foco acadêmico para praticar conceitos fundam
 
 - Elixir
 - Mix
-- Jason
+- JSON
 
 ## Estrutura dos Módulos
 
