@@ -248,36 +248,36 @@ defmodule AgendaCli.ExecutionTest do
   end
 
   test "execute_command/2 lists contacts in table format" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, ^state, [output], :noop} = AgendaCli.execute_command(:list, state)
+    assert {^contacts, [output], false} = AgendaCli.execute_command(:list, contacts)
     assert output =~ "id | nome | empresa | telefone | email"
     assert output =~ "1 | Ana Lima | Acme Ltda | 85912345678 | ana.lima@acme.com"
   end
 
   test "execute_command/2 shows one contact formatted" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, ^state, [output], :noop} = AgendaCli.execute_command({:show, 2}, state)
+    assert {^contacts, [output], false} = AgendaCli.execute_command({:show, 2}, contacts)
     assert output =~ "id: 2"
     assert output =~ "nome: Bruno Costa"
     assert output =~ "empresa: Beta SA"
   end
 
   test "execute_command/2 searches contacts using the contacts module" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, ^state, [output], :noop} =
-             AgendaCli.execute_command({:search, {:email, "ACME"}}, state)
+    assert {^contacts, [output], false} =
+             AgendaCli.execute_command({:search, {:email, "ACME"}}, contacts)
 
     assert output =~ "Ana Lima"
     refute output =~ "Bruno Costa"
   end
 
   test "execute_command/2 adds a contact and marks state to save" do
-    state = %{contacts: []}
+    contacts = []
 
-    assert {:continue, new_state, ["Contato adicionado com sucesso."], :save} =
+    assert {new_contacts, ["Contato adicionado com sucesso."], true} =
              AgendaCli.execute_command(
                {:add,
                 %{
@@ -286,17 +286,17 @@ defmodule AgendaCli.ExecutionTest do
                   phone: "85912345678",
                   email: "ana.lima@acme.com"
                 }},
-               state
+               contacts
              )
 
-    assert length(new_state.contacts) == 1
-    assert [%{"name" => "Ana Lima"}] = new_state.contacts
+    assert length(new_contacts) == 1
+    assert [%{"name" => "Ana Lima"}] = new_contacts
   end
 
   test "execute_command/2 rejects invalid contact creation with friendly messages" do
-    state = %{contacts: []}
+    contacts = []
 
-    assert {:continue, ^state, messages, :noop} =
+    assert {^contacts, messages, false} =
              AgendaCli.execute_command(
                {:add,
                 %{
@@ -305,7 +305,7 @@ defmodule AgendaCli.ExecutionTest do
                   phone: "85abc",
                   email: "ana.limaacme.com"
                 }},
-               state
+               contacts
              )
 
     assert "Empresa nao pode ficar vazio." in messages
@@ -314,22 +314,22 @@ defmodule AgendaCli.ExecutionTest do
   end
 
   test "execute_command/2 edits only the requested contact and marks state to save" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, new_state, ["Contato atualizado com sucesso."], :save} =
-             AgendaCli.execute_command({:edit, 1, %{phone: "85900000000"}}, state)
+    assert {new_contacts, ["Contato atualizado com sucesso."], true} =
+             AgendaCli.execute_command({:edit, 1, %{phone: "85900000000"}}, contacts)
 
-    assert Contacts.get_contact(new_state.contacts, 1)["phone"] == "85900000000"
-    assert Contacts.get_contact(new_state.contacts, 2)["phone"] == "85999887766"
+    assert Contacts.get_contact(new_contacts, 1)["phone"] == "85900000000"
+    assert Contacts.get_contact(new_contacts, 2)["phone"] == "85999887766"
   end
 
   test "execute_command/2 rejects invalid contact updates with friendly messages" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, ^state, messages, :noop} =
+    assert {^contacts, messages, false} =
              AgendaCli.execute_command(
                {:edit, 1, %{phone: "abc", email: "ana.limaacme.com"}},
-               state
+               contacts
              )
 
     assert "Telefone deve conter apenas numeros." in messages
@@ -338,26 +338,26 @@ defmodule AgendaCli.ExecutionTest do
   end
 
   test "execute_command/2 deletes a contact and marks state to save" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, new_state, ["Contato removido com sucesso."], :save} =
-             AgendaCli.execute_command({:del, 1}, state)
+    assert {new_contacts, ["Contato removido com sucesso."], true} =
+             AgendaCli.execute_command({:del, 1}, contacts)
 
-    assert Contacts.get_contact(new_state.contacts, 1) == nil
-    assert length(new_state.contacts) == 1
+    assert Contacts.get_contact(new_contacts, 1) == nil
+    assert length(new_contacts) == 1
   end
 
   test "execute_command/2 reports when a contact is not found" do
-    state = %{contacts: sample_contacts()}
+    contacts = sample_contacts()
 
-    assert {:continue, ^state, ["Contato nao encontrado."], :noop} =
-             AgendaCli.execute_command({:show, 999}, state)
+    assert {^contacts, ["Contato nao encontrado."], false} =
+             AgendaCli.execute_command({:show, 999}, contacts)
 
-    assert {:continue, ^state, ["Contato nao encontrado."], :noop} =
-             AgendaCli.execute_command({:edit, 999, %{phone: "1"}}, state)
+    assert {^contacts, ["Contato nao encontrado."], false} =
+             AgendaCli.execute_command({:edit, 999, %{phone: "1"}}, contacts)
 
-    assert {:continue, ^state, ["Contato nao encontrado."], :noop} =
-             AgendaCli.execute_command({:del, 999}, state)
+    assert {^contacts, ["Contato nao encontrado."], false} =
+             AgendaCli.execute_command({:del, 999}, contacts)
   end
 
   defp sample_contacts do

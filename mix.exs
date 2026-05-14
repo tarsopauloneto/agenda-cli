@@ -1,6 +1,8 @@
 defmodule AgendaCli.MixProject do
   use Mix.Project
 
+  # Configuracao principal do projeto Mix: nome da app, versao,
+  # dependencias e como o comando `mix run` deve iniciar a CLI.
   def project do
     [
       app: :agenda_cli,
@@ -20,6 +22,9 @@ defmodule AgendaCli.MixProject do
     ]
   end
 
+  # Dependencias externas usadas no projeto.
+  # Jason e o modulo responsavel por serializar e ler o JSON
+  # usado por AgendaCli.Store em `contacts.json`.
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
@@ -27,6 +32,8 @@ defmodule AgendaCli.MixProject do
     ]
   end
 
+  # Este alias faz `mix run` chamar AgendaCli.main/1 automaticamente,
+  # sem precisar usar `mix run -e ...`.
   defp aliases do
     [
       run: &run_cli/1
